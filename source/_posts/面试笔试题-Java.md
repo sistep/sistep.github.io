@@ -1,0 +1,568 @@
+---
+title: 面试笔试题-Java
+date: 2017-09-24 21:24:36
+tags:
+- Java
+categories:
+- 面试笔试
+description: Java、线程
+toc: true
+mathjax: true
+---
+
+# Java中线程安全的类与相关问题
+
+不安全的集合：ArrayList、LinkedList、HashSet、TreeSet、HashMap、TreeMap等
+可以使用Collections提供的类方法把这些集合包装为线程安全的集合：
+```
+static <T> List<T> synchronizedCollection(List<T> list)
+static <K,V> Map<K,V> synchronizedCollection(Map<K,V> m)
+static <T> Set<T> synchronizedCollection(Set<T> s)
+```
+线程安全的集合类：
+1.	以Concurrent开头的集合类,如ConcurrentHashMap、ConcurrentSkipListMap
+2.	以CopyOnWrite开头的集合类,如CopyOnWriteArrayList
+
+相关问题：
+1.	hashtable跟hashmap的区别
+hashtable是线程安全的,即hashtable的方法都提供了同步机制；hashmap不是线程安全的,即不提供同步机制 ；hashtable不允许插入空值,hashmap允许。
+2.	多线程并发修改一个集合怎么办
+用老的Vector/Hashtable类
+3.	StringBuffer是线程安全的，StringBuilder是线程不安全的
+
+# java基础内容面试题(一)
+1.	问题：如果main方法被声明为private会怎样？
+答案：能正常编译，但运行的时候会提示”main方法不是public的”.
+2.	问题：Java里的传引用和传值的区别是什么？
+答案：传引用是指传递的是地址而不是值本身，传值则是传递值的一份拷贝.
+3.	问题：如果要重写一个对象的equals方法，还要考虑什么？
+答案：hashCode.
+4.	问题：Java的”一次编写，处处运行”是如何实现的？
+答案：Java程序会被编译成字节码组成的class文件，这些字节码可以运行在任何平台，因此Java是平台独立的。
+5.	问题：说明一下public static void main(String args[])这段声明里每个关键字的作用？
+答案：public: main方法是Java程序运行时调用的第一个方法，因此它必须对Java环境可见。所以可见性设置为public.static: Java平台调用这个方法时不会创建这个类的一个实例，因此这个方法必须声明为static。void: main方法没有返回值。String是命令行传进参数的类型，args是指命令行传进的字符串数组。
+6.	问题：==与equals的区别
+答案：==比较两个对象在内存里是不是同一个对象，就是说在内存里的存储位置一致。两个String对象存储的值是一样的，但有可能在内存里存储在不同的地方 .
+==比较的是引用而equals方法比较的是内容。public boolean equals(Object obj) 这个方法是由Object对象提供的，可以由子类进行重写。默认的实现只有当对象和自身进行比较时才会返回true,这个时候和==是等价的。String, BitSet, Date, 和File都对equals方法进行了重写，对两个String对象 而言，值相等意味着它们包含同样的字符序列。对于基本类型的包装类来说，值相等意味着对应的基本类型的值一样。
+```
+运行：
+public class EqualsTest {
+public static void main(String[] args) {
+String s1 = “abc”;
+String s2 = s1;
+String s5 = “abc”;
+String s3 = new String(“abc”);
+String s4 = new String(“abc”);
+System.out.println(“== comparison : ” + (s1 == s5));
+System.out.println(“== comparison : ” + (s1 == s2));
+System.out.println(“Using equals method : ” + s1.equals(s2));
+System.out.println(“== comparison : ” + s3 == s4);
+System.out.println(“Using equals method : ” + s3.equals(s4));
+}
+}
+结果：
+== comparison : true
+== comparison : true
+Using equals method : true
+== comparison : false
+Using equals method :true
+```
+
+7.	问题：如果去掉了main方法的static修饰符会怎样？
+答案：程序能正常编译。运行时会抛NoSuchMethodError异常。
+8.	问题：为什么Oracle type4驱动被称作瘦驱动？
+答案：oracle提供了一个type 4 JDBC驱动，被称为瘦驱动。这个驱动包含了一个oracle自己完全用Java实现的一个TCP/IP的Net8的实现，因此它是平台独立的，可以在运行时由浏览器下载，不依赖任何客户端 的oracle实现。客户端连接字符串用的是TCP/IP的地址端口，而不是数据库名的tnsname。
+9.	问题：介绍一下finalize方法
+答案： final: 常量声明。 finally: 处理异常。 finalize: 帮助进行垃圾回收。
+final—修饰符（关键字）如果一个类被声明为final，意味着它不能再派生出新的子类，不能作为父类被继承。因此一个类不能既被声明为 abstract的，又被声明为final的。将变量或方法声明为final，可以保证它们在使用中不被改变。被声明为final的变量必须在声明时给定初值，而在以后的引用中只能读取，不可修改。被声明为final的方法也同样只能使用，不能重载。
+finally是异常处理时提供 finally 块来执行任何清除操作。如果抛出一个异常，那么相匹配的 catch 子句就会执行，然后控制就会进入 finally 块（如果有的话）。
+finalize是方法名。Java 技术允许使用 finalize() 方法在垃圾收集器将对象从内存中清除出去之前做必要的清理工作。这个方法是由垃圾收集器在确定这个对象没有被引用时对这个对象调用的。它是在 Object 类中定义的，因此所有的类都继承了它。子类覆盖 finalize() 方法以整理系统资源或者执行其他清理工作。finalize() 方法是在垃圾收集器删除对象之前对这个对象调用的。
+10.	问题：什么是Java API？
+答案：Java API是大量软件组件的集合，它们提供了大量有用的功能，比如GUI组件。
+11.	问题：GregorianCalendar类是什么东西？
+答案：GregorianCalendar提供了西方传统日历的支持。
+12.	问题：ResourceBundle类是什么?
+答案：ResourceBundle用来存储指定语言环境的资源，应用程序可以根据运行时的语言环境来加载这些资源，从而提供不同语言的展示。
+13.	问题：为什么Java里没有全局变量?
+答案：全局变量是全局可见的，Java不支持全局可见的变量，因为：全局变量破坏了引用透明性原则。全局变量导致了命名空间的冲突。
+14.	问题：如何将String类型转化成Number类型？
+答案：Integer类的valueOf方法可以将String转成Number。下面是代码示例：
+String numString = “1000”;
+int id=Integer.valueOf(numString).intValue();
+15.	问题：SimpleTimeZone类是什么?
+答案：SimpleTimeZone提供公历日期支持。
+16.	问题：while循环和do循环有什么不同？
+答案：while结构在循环的开始判断下一个迭代是否应该继续。do/while结构在循环的结尾来判断是否将继续下一轮迭代。do结构至少会执行一次循环体。
+17.	问题：Locale类是什么？
+答案：Locale类用来根据语言环境来动态调整程序的输出。
+18.	问题：面向对象编程的原则是什么?
+答案：主要有三点，多态，继承和封装。
+
+#	java基础内容面试题(二)
+1.	问题：介绍下继承的原则
+答案：继承使得一个对象可以获取另一个对象的属性。使用继承可以让已经测试完备的功能得以复用，并且可以一次修改，所有继承的地方都同时生效。
+2.	问题：什么是隐式的类型转化?
+答案：隐式的类型转化就是简单的一个类型赋值给另一个类型，没有显式的告诉编译器发生了转化。并不是所有的类型都支持隐式的类型转化。
+代码示例：
+int i = 1000;
+long j = i; //Implicit casting
+3.	问题：sizeof是Java的关键字吗?
+答案：不是。
+4.	问题：native方法是什么?
+答案：native方法是非Java代码实现的方法。
+5.	问题：在System.out.println()里面,System, out, println分别是什么?
+答案：System是系统提供的预定义的final类，out是一个PrintStream对象，println是out对象里面一个重载的方法。
+6.	问题：多态是什么？
+答案：简单来说，多态是指一个名字多种实现。多态使得一个实体通过一个通用的方式来实现不同的操作。具体的操作是由实际的实现来决定的。多态在Java里有三种表现方式：方法重载、通过继承实现方法重写、通过Java接口进行方法重写。
+7.	问题：显式的类型转化是什么?
+答案：显式的类型转化是明确告诉了编译器来进行对象的转化。
+代码示例：
+long i = 700.20;
+int j = (int) i; //Explicit casting
+8.	问题：什么是Java虚拟机?
+答案：Java虚拟机是能移植到不同硬件平台上的软件系统。
+9.	问题：类型向下转换是什么?
+答案：向下转换是指由一个通用类型转换成一个具体的类型，在继承结构上向下进行。
+10.	问题：Java的访问修饰符是什么?
+答案：访问权限修饰符是表明类成员的访问权限类型的关键字。使用这些关键字来限定程序的方法或者变量的访问权限。它们包含：a)public: 所有类都可以访问b) protected: 同一个包内以及所有子类都可以访问 c)private: 只有归属的类才能访问d)默认: 归属类及相同包下的子类可以访问。
+11.	问题：所有类的父类是什么？
+答案：Object.
+12.	问题：Java的基本类型有哪些?
+答案：byte,char, short, int, long, float, double, boolean。
+13.	问题：静态类型有什么特点?
+答案：静态变量是和类绑定到一起的，而不是类的实例对象。每一个实例对象都共享同样一份静态变量。也就是说，一个类的静态变量只有一份，不管它有多少个对象。类变量或者说静态变量是通过static这个关键字来声明的。类变量通常被用作常量。静态变量通常通过类名字来进行访问。当程序运行的时候这个变量就会创建直到程序结束后才会被销毁。类变量的作用域和实例变量是一样的。它的初始值和成员变量也是一样的，当变量没被初始化的时候根据它的数据类型，会有一个默认值。类似的，静态方法是属于类的方法，而不是类对象，它的调用并不作用于类对象，也不需要创建任何的类实例。静态方法本身就是final的，因为重写只会发生在类实例上，静态方法是和类绑定在一起的，不是对象。父类的静态方法会被子类的静态方法屏蔽，只要原来方法没有声明为final。
+非静态方法不能重写静态方法，也就是说，你不能在子类中把一个静态方法改成实例方法。非静态变量在每一个对象实例上都有单独的一份值。
+14.	问题：&操作符和&&操作符有什么区别?
+答案：当一个&表达式在求值的时候，两个操作数都会被求值，&&更像是一个操作符的快捷方式。当一个&&表达式求值的时候，先计算第一个操作数，如果它返回true才会计算第二个操作数。如果第一个操作数取值为false,第二个操作数就不会被求值。
+15.	问题：Java是如何处理整型的溢出和下溢的?
+答案：Java根据类型的大小，将计算结果中的对应低阶字节存储到对应的值里面。
+16.	问题：public static void写成static public void会怎样？
+答案：程序正常编译及运行。
+17.	问题：声明变量和定义变量有什么不同？
+答案：声明变量我们只提供变量的类型和名字，并没有进行初始化。定义包括声明和初始化两个阶段String s;只是变量声明，String s = new String(“bob”); 或者String s = “bob”;是变量定义。
+18.	问题：Java支持哪种参数传递类型?
+答案：Java参数都是进行传值。对于对象而言，传递的值是对象的引用，也就是说原始引用和参数引用的那个拷贝，都是指向同一个对象。
+19.	问题：对象封装的原则是什么?
+答案：封装是将数据及操作数据的代码绑定到一个独立的单元。这样保障了数据的安全，防止外部代码的错误使用。对象允许程序和数据进行封装，以减少潜在的干涉。对封装的另一个理解是作为数据及代码的保护层，防止保护层外代码的随意访问。
+20.	问题：你怎么理解变量？
+答案：变量是一块命名的内存区域，以便程序进行访问。变量用来存储数据，随着程序的执行，存储的数据也可能跟着改变。
+
+#	java基础内容面试题(三)
+1.	问题：数值提升是什么?
+答案：数值提升是指数据从一个较小的数据类型转换成为一个更大的数据类型，以便进行整型或者浮点型运算。在数值提升的过程中，byte,char,short值会被转化成int类型。需要的时候int类型也可能被提升成long。long和float则有可能会被转换成double类型。
+2.	问题：Java的类型转化是什么?
+答案：从一个数据类型转换成另一个数据类型叫做类型转换。Java有两种类型转换的方式，一个是显式的，一个是隐式的。
+3.	问题：main方法的参数里面，字符串数组的第一个参数是什么?
+答案：数组是空的，没有任何元素。不像C或者C++，第一个元素默认是程序名。如果命令行没有提供任何参数的话，main方法中的String数组为空,但不是null。
+4.	问题：怎么判断数组是null还是为空?
+答案：输出array.length的值，如果是0,说明数组为空。如果是null的话，会抛出空指针异常。
+5.	问题：程序中可以允许多个类同时都拥有main方法吗?
+答案：可以。当程序运行的时候，我们会指定运行的类名。JVM只会在你指定的类中查找main方法。因此多个类拥有main方法并不存在命名冲突的问题。
+6.	问题：静态变量在什么时候加载？编译期还是运行期？静态代码块加载的时机呢？
+答案：当类加载器将类加载到JVM中的时候就会创建静态变量，这跟对象是否创建无关。静态变量加载的时候就会分配内存空间。静态代码块的代码只会在类第一次初始化的时候执行一次。一个类可以有多个静态代码块，它并不是类的成员，也没有返回值，并且不能直接调用。静态代码块不能包含this或者super,它们通常被用初始化静态变量。
+7.	问题：一个类能拥有多个main方法吗？
+答案：可以，但只能有一个main方法拥有以下签名：
+public static void main(String[] args) {}
+否则程序将无法通过编译。编译器会警告你main方法已经存在。
+8.	问题：简单的介绍下JVM是如何工作的?
+答案：JVM是一台抽象的计算机，就像真实的计算机那样，它们会先将.java文件编译成.class文件（.class文件就是字节码文件）,然后用它的解释器来加载字节码。
+9.	问题：如果原地交换两个变量的值？
+答案：先把两个值相加赋值给第一个变量，然后用得到的结果减去第二个变量，赋值给第二个变量。再用第一个变量减去第二个变量，同时赋值给第一个变量。
+代码如下：
+```
+int a=5,b=10;a=a+b; b=a-b; a=a-b;
+使用异或操作也可以交换。第一个方法还可能会引起溢出。
+异或的方法如下：
+int a=5,b=10;a=a+b; b=a-b; a=a-b;
+int a = 5; int b = 10;
+a = a ^ b;
+b = a ^ b;
+a = a ^ b;
+```
+
+10.	问题：什么是数据的封装?
+答案：数据封装的一种方式是在类中创建set和get方法来访问对象的数据变量。一般来说变量是private的，而get和set方法是public的。封装还可以用来在存储数据时进行数据验证，或者对数据进行计算，或者用作自省（比如在struts中使用javabean）。把数据和功能封装到一个独立的结构中称为数据封装。封装其实就是把数据和关联的操作方法封装到一个独立的单元中，这样使用关联的这些方法才能对数据进行访问操作。封装提供的是数据安全性,它其实就是一种隐藏数据的方式。
+11.	问题：什么是反射API？它是如何实现的？
+答案：反射是指在运行时能查看一个类的状态及特征，并能进行动态管理的功能。这些功能是通过一些内建类的反射API提供的，比如Class,Method,Field, Constructors等。使用的例子：使用Java反射API的getName方法可以获取到类名。
+12.	问题：JVM自身会维护缓存吗，是不是在堆中进行对象分配，操作系统的堆还是JVM自己管理的堆？为什么？
+答案：是的，JVM自身会管理缓存，它在堆中创建对象，然后在栈中引用这些对象。
+13.	问题：虚拟内存是什么?
+答案：虚拟内存又叫延伸内存，实际上并不存在真实的物理内存。
+14.	问题：方法可以同时即是static又是synchronized的吗?
+答案：可以。如果这样做的话，JVM会获取和这个对象关联的java.lang.Class实例上的锁。
+这样做等于：
+```
+synchronized(XYZ.class) {
+}
+15)	问题：String和StringTokenizer的区别是什么？
+答案：StringTokenizer是一个用来分割字符串的工具类。
+StringTokenizer st = new StringTokenizer(“Hello World”);
+while (st.hasMoreTokens()) {
+System.out.println(st.nextToken());
+}
+输出：
+Hello
+World
+```
+
+16.	问题：transient变量有什么特点?
+答案：transient变量不会进行序列化。例如一个实现Serializable接口的类在序列化到ObjectStream的时候，transient类型的变量不会被写入流中，同时，反序列化回来的时候，对应变量的值为null。
+17.	问题：哪些容器使用Border布局作为它们的默认布局?
+答案：Window, Frame, Dialog。
+18.	问题：怎么理解什么是同步?
+答案：同步用来控制共享资源在多个线程间的访问，以保证同一时间内只有一个线程能访问到这个资源。在非同步保护的多线程程序里面，一个线程正在修改一个共享变量的时候，可能有另一个线程也在使用或者更新它的值。同步避免了脏数据的产生。
+```
+对方法进行同步：
+public synchronized void Method1 () {
+// Appropriate method-related code.
+}
+在方法内部对代码块进行同步：
+public myFunction (){
+synchronized (this) {
+// Synchronized code here.
+}
+}
+```
+
+19.	问题：Vector和ArrayList、LinkedList区别？
+答案：LinkedList内部以链表形式存储数据，ArrayList内部以数组形式存储数据。Vector同ArrayList，不过它与ArrayList比较起来是thread-safe的。
+20)	问题：Hashtable和HashMap之间的区别？
+答案：Hashtable是继承了Dictionary，是线程安全的。
+HashMap实现了Map接口，不是线程安全的。
+
+#	java基础内容面试题(四)
+1.	问题：如何保证线程安全的？
+答案：每个修改容器中数据的操作都是同步的（synchronized），因此保证了线程安全。
+2.	问题：String、StringBuffer，StringBuilder之间区别。
+答案：String是长度不可变的，StringBuffer和StringBuilder长度都是可以变化的。StringBuffer是线程安全的，StringBuilder不是线程安全的。
+3.	问题：AnonymousInnerClass(匿名内部类)是否可以extends(继承)其它类，是否可以implements(实现)interface(接口)
+答案：匿名的内部类是没有名字的内部类。不能extends(继承)其它类，但一个内部类可以作为一个接口，由另一个内部类实现。
+4.	问题：StaticNestedClass和InnerClass的不同
+答案：NestedClass（一般是C++的说法），InnerClass(一般是JAVA的说法)。Java内部类与C++嵌套类最大的不同就在于是否有指向外部的引用上。
+注：静态内部类（InnerClass）意味着：a)创建一个static内部类的对象，不需要一个外部类对象b)不能从一个static内部类的一个对象访问一个外部类对象。
+5.	问题：抽象类(abstract class)和接口(interface)有什么区别?
+答案：声明方法的存在而不去实现它的类被叫做抽象类（abstract class），它用于要创建一个体现某些基本行为的类，并为该类声明方法，但不能在该类中实现该类的情况。不能创建abstract 类的实例。然而可以创建一个变量，其类型是一个抽象类，并让它指向具体子类的一个实例。不能有抽象构造函数或抽象静态方法。Abstract类的子类为它们父类中的所有抽象方法提供实现，否则它们也是抽象类为。取而代之，在子类中实现该方法。知道其行为的其它类可以在类中实现这些方法。
+接口（interface）是抽象类的变体。在接口中，所有方法都是抽象的。多继承性可通过实现这样的接口而获得。接口中的所有方法都是抽象的，没有一个有程序体。接口只可以定义static final成员变量。接口的实现与子类相似，除了该实现类不能从接口定义中继承行为。当类实现特殊接口时，它定义所有这种接口的方法。然后可以在实现了该接口的类的任何对象上调用接口的方法。由于有抽象类，它允许使用接口名作为引用变量的类型。引用可以转换到接口类型或从接口类型转换，instanceof 运算符可以用来决定某对象的类是否实现了接口。
+6.	问题：Java中的异常处理机制的简单原理和应用。
+答案：当Java程序违反了Java的语义规则时，Java虚拟机就会将发生的错误表示为一个异常。违反语义规则包括2种情况：一种是Java类库内置的语义检查。例如数组下标越界时会引发IndexOutOfBoundsException，访问null的对象时会引发NullPointerException。另一种情况是Java允许程序员扩展这种语义检查，程序员可以创建自己的异常，并自由选择在何时用throw关键字引发异常。所有的异常都是Java.lang.Throwable的子类。
+7.	问题：sleep()和wait()有什么区别?
+答案：sleep()是线程类Thread的方法，导致此线程暂停执行指定时间，给执行机会给其他线程，但是监控状态依然保持，到时后会自动恢复，调用sleep不会释放对象锁。
+wait()是Object类的方法，对此对象调用wait方法导致本线程放弃对象锁，进入等待此对象的等待锁定池，只有针对此对象发出notify方法（或notifyAll）后本线程才进入对象锁定池准备获得对象锁进入运行状态。
+8.	问题：String是最基本的数据类型吗?
+答案：String不是基本数据类型，基本数据类型包括byte、int、char、long、float、double、boolean和short。 Java.lang.String类是final类型的，因此不可以继承这个类、不能修改这个类。
+9.	问题：接口是否可继承接口? 抽象类是否可实现接口? 抽象类是否可继承实体类?
+答案：接口可以继承接口。抽象类可以实现接口。抽象类可继承实体类，但前提是实体类必须有明确的构造函数。
+10.	问题：Java有没有goto?
+答案：goto是Java中的保留关键字，但是现在没有在Java中使用。
+11.	问题：启动一个线程是用run()还是start()?
+答案：启动一个线程是调用start()方法，使线程所代表的虚拟处理机处于可运行状态，这意味着它可以由JVM调度并执行。这并不意味着线程就会立即运行。run()方法可以产生必须退出的标志来停止一个线程。
+12.	问题：说明一下类变量和实例变量的区别。
+答案：类变量是所有对象共有的，所有的实例对象都共用一个类变量，内存中只有一处空间存放类变量的值。如果其中一个对象改变了类变量的值，其他对象得到的就是改变后的结果。当类被加载到内存时，类变量就会分配相应的内存空间。
+13.	问题：运行时异常与一般异常有何异同？
+答案：异常表示程序运行过程中可能出现的非正常状态，运行时异常表示虚拟机的通常操作中可能遇到的异常，是一种常见运行错误。Java编译器要求方法必须声明抛出可能发生的非运行时异常，但是并不要求必须声明抛出未被捕获的运行时异常。
+14.	问题：说明实例方法和类方法的区别？
+答案：方法前面有static关键字修饰的为类方法，否则为实例方法。 实例方法可以调用该类中的其他方法；类方法只能调用其他类方法，不能调用实例方法；当类文件加载到内存时，实例方法不会被分配内存空间，只有在对象创建之后才会分配。而类方法在该类被加载到内存时就分配了相应的内存空间。
+15.	问题：什么是哈希表？
+答案：哈希表又称散列表，是一种能将关键字映射成存储地址的记录存储技术。要存储数据，先设计一种算法（哈希函数），然后根据数据记录的关键字计算出各记录的哈希码，这个哈希码作为与关键字相关的记录数据的索引。要取出记录，只需要根据哈希函数重新计算，得到哈希码后，便可直接到相应位置去存取。
+16.	问题：是否可以从一个static方法内部发出对非static方法的调用？
+答案：不可以。如果其中包含对象的method()，不能保证对象初始化。
+17.	问题：在Java转义字符中，“`\uxxxx`”代表什么？
+答：`\uxxxx`是Java中的字符编码方式，其中前缀 `\u`就表示该字符是unicode字符，`xxxx`表示1到4位16进制数，用这种转义字符形式可以表示unicode字符集中的任意字符。
+18.	问题：switch语句中的表达式可以是什么类型数据？
+答案：表达式的值可以是byte、short、int和char类型的数据，但不能是float和double类型的数据。
+19.	问题：插入数据时，ArrayList、LinkedList、Vector谁速度较快？
+答案：ArrayList、Vector以数组方式存储数据，插入数据时要进行元素移动操作，因而插入数据慢。LinkedList是一种链表结构，在插入数据时只需要修改链表的前后项指向即可，因此插入速度较快。
+
+#	java基础内容面试题(五)
+1.	问题：说出一些常用的类，包，接口，请各举5个。
+答案：
+常用的类：BufferedReader，BufferedWriter，FileReader，FileWirter和String等。
+常用的包：Java.lang ，Java.awt，Java.io，Java.util和Java.sql等。
+常用的接口：Remote，List，Map，Document和NodeList等。
+2.	问题：多线程的实现方法分别是什么?同步的实现方法分别是什么?
+答案：多线程有两种实现方法，分别是继承Thread类与实现Runnable。
+接口同步的实现方面有两种，分别是synchronized、wait与notify。
+3.	问题：当用System.in.read(buffer)从键盘输入一行n个字符后，存储在缓冲区buffer中的字节数是多少？
+答案：当用System.in.read(buffer)从键盘输入一行n个字符后，存储在缓冲区buffer中的字节数有n+2个，即除输入的n个字符后，还存储了回车和换行字符。
+4.	问题：如何实现字符串的分割？
+答案：第一种方法是采用split()方法，将分割后的内容保存在指定的字符串数组中；第二种方法是采用StringTokenizer，利用StringTokenizer的nextToken()、hasMoreTokens()等方法进行分割。
+5.	问题：描述一下JVM加载class文件的原理机制?
+答案：JVM中类的装载是由ClassLoader和它的子类来实现的,Java ClassLoader 是一个重要的Java运行时系统组件。它负责在运行时查找和装入类文件的类。
+6.  问题：在什么情况下，finally语句不会执行？
+答案：如果在try内部执行一条System.exit(0)语句终止应用程序的执行，则finally中的语句不会被执行。
+7.	问题：说出重写和重载的区别，重写方法是否可以改变返回值的类型?
+答案：方法的重写Overriding和重载Overloading是Java多态性的不同表现。重写是父类与子类之间多态性的一种表现，重载是一个类中多态性的一种表现。
+如果在子类中定义某方法与其父类有相同的名称和参数，我们说该方法被重写。子类的对象使用这个方法时，将调用子类中的定义，对它而言，父类中的定义如同被”屏蔽”了。如果在一个类中定义了多个同名的方法，它们或有不同的参数个数或有不同的参数类型，则称为方法的重载。重载的方法是可以改变返回值的类型。
+8.	问题：throw和throws有什么区别？
+答案：throw关键字一般用于方法内部，用于抛出一个异常类对象，一旦异常被抛出后，throw语句后的程序代码将不会被执行。
+throws关键字通常出现在方法声明中，用来指定该方法可能抛出的异常。如果可能有多个异常抛出，可以使用逗号将它们分隔开。
+9.	问题：字符串的compareTo方法结果是什么？
+答案：使用compareTo()方法可以比较字符串与字符串之间的大小关系。如果当前字符串小于指定字符串，则返回一个小于0的数值；否则返回一个大于0的数值；如果两个字符串相等，则返回0。
+10.	问题：字符串的连接操作有几种实现方法？
+答案：字符串与字符串的连接操作可以通过“+”运算符和concat()方法来实现。另外“+”运算符还可以实现字符串与其他类型数据之间的连接操作，可以与字符串连接的数据类型有：int、long、float、double、boolean、char等。
+11.	问题：当一个对象被当作参数传递到一个方法后，此方法可改变这个对象的属性，并可返回变化后的结果，那么这里到底是值传递还是引用传递?
+答案：是值传递，因为在Java编程语言中只有值传递参数。当一个对象实例作为一个参数被传递到方法中时，参数的值就是对该对象的引用。对象的内容可以在被调用的方法中改变，但对象的引用是永远不会改变的。
+12.	问题：Class MyClass等价于 Class MyClass extends Object是否正确？
+答案：正确。因为Object类是Java中最高层次的类，是所有类的超类。所有的类，都可以说是由Object继承而来，只是我们不需要显式地指明extends Object。
+13.	问题：数组有没有length()方法? String有没有length()方法？
+答案：数组没有length()方法，只有length的属性。String有length()方法。
+14.	问题：面向对象的特征有哪些方面
+答案：
+  - （1）抽象：抽象就是忽略一个主题中与当前目标无关的方面，以便更充分地注意与当前目标有关的方面。抽象并不打算了解全部问题，而只是选择其中的一部分，暂时不用部分细节。抽象包括两个方面：一个是过程抽象，另外一个是数据抽象。
+  - （2）继承：继承是一种联结类的层次模型，并且允许类的重用，它提供了一种明确表述共性的方法。对象的一个新类可以从现有的类中派生，这个过程称为类继承。新类继承了原始类的特性，新类称为原始类的派生类（子类），而原始类称为新类的基类（父类）。派生类可以从它的基类那里继承方法和实例变量，并且类可以修改或增加新的方法使之更适合特殊的需要。
+  - （3）封装：封装是把过程和数据包围起来，对数据的访问只能通过已定义的界面。现实世界可以被描绘成一系列完全自治、封装的对象，这些对象通过一个受保护的接口访问其他对象。
+  - （4）多态性：多态性是指允许不同类的对象对同一消息作出响应。多态性包括参数化多态性和包含多态性。多态性语言具有灵活、抽象、行为共享、代码共享的优势，同时很好地解决了应用程序函数同名问题。
+15.	问题：Java中实现多态的机制是什么？
+答案：方法的重写和重载是Java多态性的不同表现。重写是父类与子类之间多态性的一种表现，重载是一个类中多态性的一种表现。
+16.	问题：通过JDBC连接数据库有哪几种方式？
+答案：JDBC-ODBC bridge driver方式可以访问一个ODBC数据源，但每台客户端计算机需要安装并配置ODBC驱动程序。
+Native-API partly Java driver方式将JDBC调用转换成特定数据库API的调用，该方式要求每台客户端计算机安装特定数据库的驱动程序。
+JDBC-Net pure Java driver方式将JDBC调用转换为独立于数据库的中间件厂商的专有数据库访问协议，然后由其负责与数据库的连接活动。
+Native-protocol pure Java driver方式将JDBC调用转换为数据库直接使用的标准网络协议（例如HTTP等）。这种方式不需要安装客户端软件，客户端计算机可以直接与数据库服务器进行数据“交流”活动。
+17.	问题：List、Map、Set三个接口，存取元素时，各有什么特点？
+答案：List以特定次序来持有元素，可有重复元素。Set 无法拥有重复元素，内部排序。Map 保存key-value值，value可多值。
+18.	问题：什么是循环嵌套？其特点是什么？
+答案：循环的嵌套，是指在一个循环语句的循环体中又包含另一个完整的循环语句。多重循环语句的特点是：外层循环变量相对稳定，内层循环变量逐一变化，即：“多层循环，内（层）外（层）有别，外（层）变一次，内（层）变一遍。”
+19.	问题：char型变量中能不能存贮一个中文汉字?为什么?
+答案：能够定义成为一个中文的，因为Java中以unicode编码，一个char占16个字节，所以放一个中文是没问题的。
+20.	问题：error和exception有什么区别
+答案：error 表示恢复不是不可能但很困难的情况下的一种严重问题。比如说内存溢出。
+exception 表示一种设计或实现问题。也就是说，它表示如果程序运行正常，从不会发生的情况
+21.	问题：如何实现Java序列化？
+答案：将需要被序列化的类实现Serializable接口，该接口没有需要实现的方法，它只是为了标注该对象是可被序列化的，然后需要使用一个输出流来构造一个ObjectOutputStream对象，接着使用ObjectOutputStream对象的writeObject()方法就可以将参数为obj的对象写出，要恢复的话则需要使用输入流。
+22.	问题：Java中有几种类型的流？JDK为每种类型的流提供了一些抽象类以供继承，请说出他们分别是哪些类？
+答案：字节流和字符流。字节流继承于InputStream OutputStream，字符流继承于InputStreamReader OutputStreamWriter。在Java.io包中还有许多其他的流，主要是为了提高性能和使用方便。
+23.	问题：String s=new String(“a”);共创建了几个String对象？
+答案：两个。其中包括一个字符对象和一个字符对象引用对象。
+
+# JVM的组成、垃圾回收机制
+[http://www.tengleitech.com/archives/1211](http://www.tengleitech.com/archives/1211)
+
+#	JAVA多线程面试题
+[http://www.tengleitech.com/archives/1214](http://www.tengleitech.com/archives/1214)
+
+#	List、Set和Map面试题
+[http://www.tengleitech.com/archives/1217](http://www.tengleitech.com/archives/1217)
+
+#	Spring 面试题
+1.	什么是spring?
+Spring 是个java企业级应用的开源开发框架。Spring主要用来开发Java应用，但是有些扩展是针对构建J2EE平台的web应用。Spring 框架目标是简化Java企业级应用开发，并通过POJO为基础的编程模型促进良好的编程习惯。
+2.	使用Spring框架的好处是什么?
+轻量：Spring 是轻量的，基本的版本大约2MB。
+控制反转(IOC)：Spring通过控制反转实现了松散耦合，对象们给出它们的依赖，而不是创建或查找依赖的对象们。
+面向切面的编程(AOP)：Spring支持面向切面的编程，并且把应用业务逻辑和系统服务分开。
+容器：Spring 包含并管理应用中对象的生命周期和配置。
+MVC框架：Spring的WEB框架是个精心设计的框架，是Web框架的一个很好的替代品。
+事务管理：Spring 提供一个持续的事务管理接口，可以扩展到上至本地事务下至全局事务(JTA)。
+异常处理：Spring 提供方便的API把具体技术相关的异常(比如由JDBC，Hibernate or JDO抛出的)转化为一致的unchecked 异常。
+3.	Spring由哪些模块组成?
+以下是Spring 框架的基本模块：
+Core module
+Bean module
+Context module
+Expression Language module
+JDBC module
+ORM module
+OXM module
+Java Messaging Service(JMS) module
+Transaction module
+Web module
+Web-Servlet module
+Web-Struts module
+Web-Portlet module
+4.	核心容器(应用上下文) 模块。
+这是基本的Spring模块，提供spring 框架的基础功能，BeanFactory 是 任何以spring为基础的应用的核心。Spring 框架建立在此模块之上，它使Spring成为一个容器。
+5.	BeanFactory – BeanFactory 实现举例。
+Bean 工厂是工厂模式的一个实现，提供了控制反转功能，用来把应用的配置和依赖从正真的应用代码中分离。最常用的BeanFactory 实现是XmlBeanFactory 类。
+6.	XMLBeanFactory
+最常用的就是org.springframework.beans.factory.xml.XmlBeanFactory ，它根据XML文件中的定义加载beans。该容器从XML 文件读取配置元数据并用它去创建一个完全配置的系统或应用。
+7.	解释AOP模块
+AOP模块用于发给我们的Spring应用做面向切面的开发， 很多支持由AOP联盟提供，这样就确保了Spring和其他AOP框架的共通性。这个模块将元数据编程引入Spring。
+8.	解释JDBC抽象和DAO模块。
+通过使用JDBC抽象和DAO模块，保证数据库代码的简洁，并能避免数据库资源错误关闭导致的问题，它在各种不同的数据库的错误信息之上，提供了一个统一的异常访问层。它还利用Spring的AOP 模块给Spring应用中的对象提供事务管理服务。
+9.	解释对象/关系映射集成模块。
+Spring 通过提供ORM模块，支持我们在直接JDBC之上使用一个对象/关系映射映射(ORM)工具，Spring 支持集成主流的ORM框架，如Hiberate,JDO和 iBATIS SQL Maps。Spring的事务管理同样支持以上所有ORM框架及JDBC。
+10.	解释WEB 模块。
+Spring的WEB模块是构建在application context 模块基础之上，提供一个适合web应用的上下文。这个模块也包括支持多种面向web的任务，如透明地处理多个文件上传请求和程序级请求参数的绑定到你的业务对象。它也有对Jakarta Struts的支持。
+11.	Spring配置文件
+Spring配置文件是个XML 文件，这个文件包含了类信息，描述了如何配置它们，以及如何相互调用。
+12.	 什么是Spring IOC 容器?
+Spring IOC 负责创建对象，管理对象(通过依赖注入(DI)，装配对象，配置对象，并且管理这些对象的整个生命周期。
+13.	IOC的优点是什么?
+IOC 或 依赖注入把应用的代码量降到最低。它使应用容易测试，单元测试不再需要单例和JNDI查找机制。最小的代价和最小的侵入性使松散耦合得以实现。IOC容器支持加载服务时的饿汉式初始化和懒加载。
+14.	ApplicationContext通常的实现是什么?
+FileSystemXmlApplicationContext ：此容器从一个XML文件中加载beans的定义，XML Bean 配置文件的全路径名必须提供给它的构造函数。
+ClassPathXmlApplicationContext：此容器也从一个XML文件中加载beans的定义，这里，你需要正确设置classpath因为这个容器将在classpath里找bean配置。
+WebXmlApplicationContext：此容器加载一个XML文件，此文件定义了一个WEB应用的所有bean。
+15.	Bean 工厂和 Application contexts 有什么区别?
+Application contexts提供一种方法处理文本消息，一个通常的做法是加载文件资源(比如镜像)，它们可以向注册为监听器的bean发布事件。另外，在容器或容器内的对象上执行的那些不得不由bean工厂以程序化方式处理的操作，可以在Application contexts中以声明的方式处理。Application contexts实现了MessageSource接口，该接口的实现以可插拔的方式提供获取本地化消息的方法。
+16. 一个Spring的应用看起来象什么?
+一个定义了一些功能的接口。
+这实现包括属性，它的Setter,getter 方法和函数等。
+Spring AOP。
+Spring 的XML 配置文件。
+使用以上功能的客户端程序。
+依赖注入
+17.	什么是Spring的依赖注入?
+依赖注入，是IOC的一个方面，是个通常的概念，它有多种解释。这概念是说你不用创建对象，而只需要描述它如何被创建。你不在代码里直接组装你的组件和服务，但是要在配置文件里描述哪些组件需要哪些服务，之后一个容器(IOC容器)负责把他们组装起来。
+18.	有哪些不同类型的IOC(依赖注入)方式?
+构造器依赖注入：构造器依赖注入通过容器触发一个类的构造器来实现的，该类有一系列参数，每个参数代表一个对其他类的依赖。
+Setter方法注入：Setter方法注入是容器通过调用无参构造器或无参static工厂方法实例化bean之后，调用该bean的setter方法，即实现了基于setter的依赖注入。
+19.	哪种依赖注入方式你建议使用，构造器注入，还是 Setter方法注入?
+你两种依赖方式都可以使用，构造器注入和Setter方法注入。最好的解决方案是用构造器参数实现强制依赖，setter方法实现可选依赖。
+20.	什么是Spring beans?
+Spring beans 是那些形成Spring应用的主干的java对象。它们被Spring IOC容器初始化，装配，和管理。这些beans通过容器中配置的元数据创建。比如，以XML文件中 的形式定义。
+Spring 框架定义的beans都是单件beans。在bean tag中有个属性”singleton”，如果它被赋为TRUE，bean 就是单件，否则就是一个 prototype bean。默认是TRUE，所以所有在Spring框架中的beans 缺省都是单件。
+21.	一个 Spring Bean 定义 包含什么?
+一个Spring Bean 的定义包含容器必知的所有配置元数据，包括如何创建一个bean，它的生命周期详情及它的依赖。
+22.	如何给Spring 容器提供配置元数据?
+这里有三种重要的方法给Spring 容器提供配置元数据。
+XML配置文件。
+基于注解的配置。
+基于java的配置。
+23.	你怎样定义类的作用域?
+当定义一个bean在Spring里，我们还能给这个bean声明一个作用域。它可以通过bean 定义中的scope属性来定义。如，当Spring要在需要的时候每次生产一个新的bean实例，bean的scope属性被指定为prototype。另一方面，一个bean每次使用的时候必须返回同一个实例，这个bean的scope 属性 必须设为 singleton。
+24.	解释Spring支持的几种bean的作用域。
+Spring框架支持以下五种bean的作用域：
+singleton : bean在每个Spring ioc 容器中只有一个实例。
+prototype：一个bean的定义可以有多个实例。
+request：每次http请求都会创建一个bean，该作用域仅在基于web的Spring ApplicationContext情形下有效。
+session：在一个HTTP Session中，一个bean定义对应一个实例。该作用域仅在基于web的Spring ApplicationContext情形下有效。
+global-session：在一个全局的HTTP Session中，一个bean定义对应一个实例。该作用域仅在基于web的Spring ApplicationContext情形下有效。
+缺省的Spring bean 的作用域是Singleton.
+25.	Spring框架中的单例bean是线程安全的吗?
+不，Spring框架中的单例bean不是线程安全的。
+26.	解释Spring框架中bean的生命周期。
+Spring容器 从XML 文件中读取bean的定义，并实例化bean。
+Spring根据bean的定义填充所有的属性。
+如果bean实现了BeanNameAware 接口，Spring 传递bean 的ID 到 setBeanName方法。
+如果Bean 实现了 BeanFactoryAware 接口， Spring传递beanfactory 给setBeanFactory 方法。
+如果有任何与bean相关联的BeanPostProcessors，Spring会在postProcesserBeforeInitialization()方法内调用它们。
+如果bean实现IntializingBean了，调用它的afterPropertySet方法，如果bean声明了初始化方法，调用此初始化方法。
+如果有BeanPostProcessors 和bean 关联，这些bean的postProcessAfterInitialization() 方法将被调用。
+如果bean实现了 DisposableBean，它将调用destroy()方法。
+27.	哪些是重要的bean生命周期方法? 你能重载它们吗?
+有两个重要的bean 生命周期方法，第一个是setup,它是在容器加载bean的时候被调用。第二个方法是teardown它是在容器卸载类的时候被调用。
+The bean 标签有两个重要的属性(init-method和destroy-method)。用它们你可以自己定制初始化和注销方法。它们也有相应的注解(@PostConstruct和@PreDestroy)。
+28.	什么是Spring的内部bean?
+当一个bean仅被用作另一个bean的属性时，它能被声明为一个内部bean，为了定义inner bean，在Spring 的 基于XML的 配置元数据中，可以在 或 元素内使用 元素，内部bean通常是匿名的，它们的Scope一般是prototype。
+29.	在 Spring中如何注入一个java集合?
+Spring提供以下几种集合的配置元素：
+类型用于注入一列值，允许有相同的值。
+类型用于注入一组值，不允许有相同的值。
+类型用于注入一组键值对，键和值都可以为任意类型。
+类型用于注入一组键值对，键和值都只能为String类型。
+30.	什么是bean装配?
+装配，或bean 装配是指在Spring 容器中把bean组装到一起，前提是容器需要知道bean的依赖关系，如何通过依赖注入来把它们装配到一起。
+31. 什么是bean的自动装配?
+Spring 容器能够自动装配相互合作的bean，这意味着容器不需要和<:property>配置，能通过Bean工厂自动处理bean之间的协作。
+32.	解释不同方式的自动装配 。
+有五种自动装配的方式，可以用来指导Spring容器用自动装配方式来进行依赖注入。
+no：默认的方式是不进行自动装配，通过显式设置ref 属性来进行装配。
+byName：通过参数名 自动装配，Spring容器在配置文件中发现bean的autowire属性被设置成byname，之后容器试图匹配、装配和该bean的属性具有相同名字的bean。
+byType:：通过参数类型自动装配，Spring容器在配置文件中发现bean的autowire属性被设置成byType，之后容器试图匹配、装配和该bean的属性具有相同类型的bean。如果有多个bean符合条件，则抛出错误。
+constructor：这个方式类似于byType， 但是要提供给构造器参数，如果没有确定的带参数的构造器参数类型，将会抛出异常。
+autodetect：首先尝试使用constructor来自动装配，如果无法工作，则使用byType方式。
+33.	自动装配有哪些局限性 ?
+自动装配的局限性是：
+重写： 你仍需用 和 <:property>配置来定义依赖，意味着总要重写自动装配。
+基本数据类型：你不能自动装配简单的属性，如基本数据类型，String字符串，和类。
+模糊特性：自动装配不如显式装配精确，如果有可能，建议使用显式装配。
+34.	你可以在Spring中注入一个null 和一个空字符串吗?
+可以。
+35.	什么是基于Java的Spring注解配置? 给一些注解的例子.
+基于Java的配置，允许你在少量的Java注解的帮助下，进行你的大部分Spring配置而非通过XML文件。
+以@Configuration 注解为例，它用来标记类可以当做一个bean的定义，被Spring IOC容器使用。另一个例子是@Bean注解，它表示此方法将要返回一个对象，作为一个bean注册进Spring应用上下文。
+36.	什么是基于注解的容器配置?
+相对于XML文件，注解型的配置依赖于通过字节码元数据装配组件，而非尖括号的声明。
+开发者通过在相应的类，方法或属性上使用注解的方式，直接组件类中进行配置，而不是使用xml表述bean的装配关系。
+37.	怎样开启注解装配?
+注解装配在默认情况下是不开启的，为了使用注解装配，我们必须在Spring配置文件中配置元素。
+38.	@Required 注解
+这个注解表明bean的属性必须在配置的时候设置，通过一个bean定义的显式的属性值或通过自动装配，若@Required注解的bean属性未被设置，容器将抛出BeanInitializationException。
+39.	@Autowired 注解
+@Autowired 注解提供了更细粒度的控制，包括在何处以及如何完成自动装配。它的用法和@Required一样，修饰setter方法、构造器、属性或者具有任意名称和/或多个参数的PN方法。
+40.	@Qualifier 注解
+当有多个相同类型的bean却只有一个需要自动装配时，将@Qualifier 注解和@Autowire 注解结合使用以消除这种混淆，指定需要装配的确切的bean。
+41.	在Spring框架中如何更有效地使用JDBC?
+使用SpringJDBC 框架，资源管理和错误处理的代价都会被减轻。所以开发者只需写statements 和 queries从数据存取数据，JDBC也可以在Spring框架提供的模板类的帮助下更有效地被使用，这个模板叫JdbcTemplate (例子见这里here)
+42.	JdbcTemplate
+JdbcTemplate 类提供了很多便利的方法解决诸如把数据库数据转变成基本数据类型或对象，执行写好的或可调用的数据库操作语句，提供自定义的数据错误处理。
+43.	Spring对DAO的支持
+Spring对数据访问对象(DAO)的支持旨在简化它和数据访问技术如JDBC，Hibernate or JDO 结合使用。这使我们可以方便切换持久层。编码时也不用担心会捕获每种技术特有的异常。
+44.	使用Spring通过什么方式访问Hibernate?
+在Spring中有两种方式访问Hibernate：
+控制反转 Hibernate Template和 Callback。
+继承 HibernateDAOSupport提供一个AOP 拦截器。
+45.	Spring支持的ORM
+Spring支持以下ORM：
+Hibernate
+iBatis
+JPA (Java Persistence API)
+TopLink
+JDO (Java Data Objects)
+OJB
+46.	如何通过HibernateDaoSupport将Spring和Hibernate结合起来?
+用Spring的 SessionFactory 调用 LocalSessionFactory。集成过程分三步：
+配置the Hibernate SessionFactory。
+继承HibernateDaoSupport实现一个DAO。
+在AOP支持的事务中装配。
+47.	Spring支持的事务管理类型
+Spring支持两种类型的事务管理：
+编程式事务管理：这意味你通过编程的方式管理事务，给你带来极大的灵活性，但是难维护。
+声明式事务管理：这意味着你可以将业务代码和事务管理分离，你只需用注解和XML配置来管理事务。
+48.	Spring框架的事务管理有哪些优点?
+它为不同的事务API 如 JTA，JDBC，Hibernate，JPA 和JDO，提供一个不变的编程模式。
+它为编程式事务管理提供了一套简单的API而不是一些复杂的事务API如
+它支持声明式事务管理。
+它和Spring各种数据访问抽象层很好得集成。
+49.	你更倾向用那种事务管理类型?
+大多数Spring框架的用户选择声明式事务管理，因为它对应用代码的影响最小，因此更符合一个无侵入的轻量级容器的思想。声明式事务管理要优于编程式事务管理，虽然比编程式事务管理(这种方式允许你通过代码控制事务)少了一点灵活性。
+50.	解释AOP
+面向切面的编程，或AOP,是一种编程技术，允许程序模块化横向切割关注点，或横切典型的责任划分，如日志和事务管理。
+51.	Aspect 切面
+AOP核心就是切面，它将多个类的通用行为封装成可重用的模块，该模块含有一组API提供横切功能。比如，一个日志模块可以被称作日志的AOP切面。根据需求的不同，一个应用程序可以有若干切面。在Spring AOP中，切面通过带有@Aspect注解的类实现。
+52.	在Spring AOP 中，关注点和横切关注的区别是什么?
+关注点是应用中一个模块的行为，一个关注点可能会被定义成一个我们想实现的一个功能。
+横切关注点是一个关注点，此关注点是整个应用都会使用的功能，并影响整个应用，比如日志，安全和数据传输，几乎应用的每个模块都需要的功能。因此这些都属于横切关注点。
+53.	连接点
+连接点代表一个应用程序的某个位置，在这个位置我们可以插入一个AOP切面，它实际上是个应用程序执行Spring AOP的位置。
+54.	通知
+通知是个在方法执行前或执行后要做的动作，实际上是程序执行时要通过SpringAOP框架触发的代码段。
+Spring切面可以应用五种类型的通知：
+before：前置通知，在一个方法执行前被调用。
+after: 在方法执行之后调用的通知，无论方法执行是否成功。
+after-returning: 仅当方法成功完成后执行的通知。
+after-throwing: 在方法抛出异常退出时执行的通知。
+around: 在方法执行之前和之后调用的通知。
+55.	切点
+切入点是一个或一组连接点，通知将在这些位置执行。可以通过表达式或匹配的方式指明切入点。
+56.	什么是引入?
+引入允许我们在已存在的类中增加新的方法和属性。
+57.	什么是目标对象?
+被一个或者多个切面所通知的对象。它通常是一个代理对象。也指被通知(advised)对象。
+58.	什么是代理?
+代理是通知目标对象后创建的对象。从客户端的角度看，代理对象和目标对象是一样的。
+59.	有几种不同类型的自动代理?
+BeanNameAutoProxyCreator
+DefaultAdvisorAutoProxyCreator
+Metadata autoproxying
+60.	什么是织入。什么是织入应用的不同点?
+织入是将切面和到其他应用类型或对象连接或创建一个被通知对象的过程。
+织入可以在编译时，加载时，或运行时完成。
+61.	解释基于XML Schema方式的切面实现。
+在这种情况下，切面由常规类以及基于XML的配置实现。
+62.	解释基于注解的切面实现
+在这种情况下(基于@AspectJ的实现)，涉及到的切面声明的风格与带有java5标注的普通java类一致。
+63.	什么是Spring的MVC框架?
+Spring 配备构建Web 应用的全功能MVC框架。Spring可以很便捷地和其他MVC框架集成，如Struts，Spring 的MVC框架用控制反转把业务对象和控制逻辑清晰地隔离。它也允许以声明的方式把请求参数和业务对象绑定。
+64.	DispatcherServlet
+Spring的MVC框架是围绕DispatcherServlet来设计的，它用来处理所有的HTTP请求和响应。
+WebApplicationContext
+WebApplicationContext 继承了ApplicationContext 并增加了一些WEB应用必备的特有功能，它不同于一般的ApplicationContext ，因为它能处理主题，并找到被关联的servlet。
+65.	什么是Spring MVC框架的控制器?
+控制器提供一个访问应用程序的行为，此行为通常通过服务接口实现。控制器解析用户输入并将其转换为一个由视图呈现给用户的模型。Spring用一个非常抽象的方式实现了一个控制层，允许用户创建多种用途的控制器。
+66.	@Controller 注解
+该注解表明该类扮演控制器的角色，Spring不需要你继承任何其他控制器基类或引用Servlet API。
+67.	@RequestMapping 注解
+该注解是用来映射一个URL到一个类或一个特定的方处理法上。
